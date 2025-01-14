@@ -1,0 +1,10 @@
+# Builds
+build/
+
+# Google Tests
+tests/lib/
+.cache/
+
+# Jet Brains
+.idea/
+cmake-build-debug/
