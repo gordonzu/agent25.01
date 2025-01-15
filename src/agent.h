@@ -1,6 +1,6 @@
 #include <iostream>
 #include <vector>
-#include <map>
+#include <unordered_map>
 #include <string>
 #include <random>
 #include <functional>
@@ -14,11 +14,18 @@ struct Location {
     bool operator==(const Location& other) const {
         return x == other.x && y == other.y;
     }
-
-    bool operator<(const Location& other) const {
-        return (x < other.x || y < other.y);
-    }
 };
+
+namespace std {
+    template <>
+    struct hash<Location> {
+        size_t operator()(const Location& l) const {
+            size_t h1 = std::hash<int>{}(l.x);
+            size_t h2 = std::hash<int>{}(l.y);
+            return h1 ^ (h2 << 1);
+        }
+    };
+}
 
 const Location loc_A{0, 0};
 const Location loc_B{1, 0};
@@ -50,8 +57,8 @@ class Agent : public Object {
 public:
     bool alive{true};
     bool bump{false};
-    std::vector<Object*> holding;
     int performance{0};
+    std::vector<Object*> holding;
     std::function<std::string(std::pair<Location, std::string>)> program;
 
     explicit Agent(std::function<std::string(std::pair<Location, std::string>)> prog = nullptr) {
@@ -174,7 +181,7 @@ public:
         return gen() % 2 == 0 ? loc_A : loc_B;
     }
 
-    const std::map<Location, std::string>& get_status() const {
+    const std::unordered_map<Location, std::string>& get_status() const {
         return status;
     }
 
@@ -183,7 +190,7 @@ public:
     }
 
 private:
-    std::map<Location, std::string> status;
+    std::unordered_map<Location, std::string> status;
 };
 
 std::unique_ptr<Agent> RandomVacuumAgent() {
@@ -207,7 +214,7 @@ std::unique_ptr<Agent> ReflexVacuumAgent() {
     return std::make_unique<Agent>(program);
 }
 
-std::string format(const std::map<Location, std::string>& rows) {
+std::string format(const std::unordered_map<Location, std::string>& rows) {
     std::string str = "{";
     for (auto itr = rows.begin(); itr != rows.end(); ++itr) {
         str += "(" + std::to_string(itr->first.x);
