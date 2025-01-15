@@ -214,34 +214,10 @@ std::string format(const std::map<Location, std::string>& rows) {
         str += ", " + std::to_string(itr->first.y);
         str += "): '" + itr->second + "', ";
         if (std::next(itr) == rows.end()) {
-            str.pop_back();
+            str.erase(str.size() - 2);
             str.append("}");
             return str;
         }
     }
     return str = "";
 }
-
-// int out() {
-//     auto agent = RandomVacuumAgent();
-//     auto env = std::make_unique<TrivialVacuumEnvironment>();
-//     env->add_object(std::move(agent));
-//     env->run();
-//     std::cout << "rows: " << env->get_size() << "\n";
-//     std::cout << format(env->get_status()) << "\n";
-//     return 0;
-// }
-
-
-//std::string print() {
-
-    // for (int i = 0; i < 5; ++i) {
-    //     str += "(gordon";
-    //     str += "), ";
-    //     str += "(diana), ";
-    //     if (i == 4) {
-    //         str += "___That's it!___";
-    //         return str;
-    //     }
-    // }
-    //
