@@ -16,7 +16,7 @@ struct Location {
     }
 
     bool operator<(const Location& other) const {
-        return (x < other.x && y < other.y);
+        return (x < other.x || y < other.y);
     }
 };
 
@@ -30,7 +30,9 @@ class TableDrivenVacuumAgent {};
 
 class Object {
 public:
-    Location location{0, 0};
+    Object() = default;
+    virtual ~Object() = default;
+
     virtual std::string toString() const {
         return "<" + std::string(typeid(*this).name()) + ">";
     }
@@ -40,7 +42,8 @@ public:
     virtual void show_state() const {
         std::cout << "I don't know how to show_state." << std::endl;
     }
-    virtual ~Object() = default;
+
+    Location location{0, 0};
 };
 
 class Agent : public Object {
@@ -72,11 +75,10 @@ public:
 };
 
 class Environment {
-protected:
-    std::vector<std::unique_ptr<Object>> objects;
-    std::vector<Agent*> agents;
-
 public:
+    Environment() = default;
+    virtual ~Environment() = default;
+
     virtual std::vector<std::string> object_classes() {
         return std::vector<std::string>();
     }
@@ -127,20 +129,25 @@ public:
         }
         objects.push_back(std::move(object));
     }
+
+protected:
+    std::vector<std::unique_ptr<Object>> objects;
+    std::vector<Agent*> agents;
 };
 
 class TrivialVacuumEnvironment : public Environment {
-private:
-    std::map<Location, std::string> status;
-
 public:
     TrivialVacuumEnvironment() {
+        std::vector<std::string> choices{"Clean", "Dirty"};
         std::random_device rd;
         std::mt19937 gen(rd());
-        std::vector<std::string> choices{"Clean", "Dirty"};
-        status[loc_A] = choices[gen() % 2];
-        status[loc_B] = choices[gen() % 2];
+        std::uniform_int_distribution<> dis(0, 1);
+
+        status[loc_A] = choices[dis(gen)];
+        status[loc_B] = choices[dis(gen)];
     }
+
+    virtual ~TrivialVacuumEnvironment() = default;
 
     std::pair<Location, std::string> percept(Agent* agent) override {
         return {agent->location, status[agent->location]};
@@ -174,6 +181,9 @@ public:
     const size_t get_size() const {
         return status.size();
     }
+
+private:
+    std::map<Location, std::string> status;
 };
 
 std::unique_ptr<Agent> RandomVacuumAgent() {
@@ -197,20 +207,7 @@ std::unique_ptr<Agent> ReflexVacuumAgent() {
     return std::make_unique<Agent>(program);
 }
 
-//std::string print() {
-
-    // for (int i = 0; i < 5; ++i) {
-    //     str += "(gordon";
-    //     str += "), ";
-    //     str += "(diana), ";
-    //     if (i == 4) {
-    //         str += "___That's it!___";
-    //         return str;
-    //     }
-    // }
-    //
-
-std::string print(const std::map<Location, std::string>& rows) {
+std::string format(const std::map<Location, std::string>& rows) {
     std::string str = "{";
     for (auto itr = rows.begin(); itr != rows.end(); ++itr) {
         str += "(" + std::to_string(itr->first.x);
@@ -225,13 +222,26 @@ std::string print(const std::map<Location, std::string>& rows) {
     return str = "";
 }
 
-int out() {
-    auto agent = RandomVacuumAgent();
-    auto env = std::make_unique<TrivialVacuumEnvironment>();
-    env->add_object(std::move(agent));
-    env->run();
-    std::cout << "rows: " << env->get_size() << "\n";
-    std::cout << print(env->get_status()) << "\n";
-    //std::cout << print() << "\n";
-    return 0;
-}
+// int out() {
+//     auto agent = RandomVacuumAgent();
+//     auto env = std::make_unique<TrivialVacuumEnvironment>();
+//     env->add_object(std::move(agent));
+//     env->run();
+//     std::cout << "rows: " << env->get_size() << "\n";
+//     std::cout << format(env->get_status()) << "\n";
+//     return 0;
+// }
+
+
+//std::string print() {
+
+    // for (int i = 0; i < 5; ++i) {
+    //     str += "(gordon";
+    //     str += "), ";
+    //     str += "(diana), ";
+    //     if (i == 4) {
+    //         str += "___That's it!___";
+    //         return str;
+    //     }
+    // }
+    //
